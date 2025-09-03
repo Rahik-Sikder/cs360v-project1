@@ -87,11 +87,10 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 {
 	struct Env *e;
 
-	// Following comment is what it should look like
-	// if (envid == 0) {
-	// 	*env_store = curenv;
-	// 	return 0;
-	// }
+	if (envid == 0) {
+		*env_store = curenv;
+		return 0;
+	}
 
 	// Look up the Env structure via the index part of the envid,
 	// then check the env_id field in that struct Env
@@ -100,7 +99,7 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 	// that used the same slot in the envs[] array).
 
 	// it should use the ENVX() macro found in inc/env.h, not straight reference
-	e = &envs[envid];
+	e = &envs[ENVX(envid)];
 	if (e->env_status == ENV_FREE || e->env_id != envid) {
 		*env_store = 0;
 		return -E_BAD_ENV;
@@ -116,8 +115,8 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 		return -E_BAD_ENV;
 	}
 
-	// should be *env_store = e;, this might literaly work tho
-	env_store = &e;
+	// should be *env_store = e;, prevents null dereference
+	*env_store = e;
 	return 0;
 }
 
@@ -673,8 +672,9 @@ env_run(struct Env *e)
 		// running
 		curenv = e;
 		e->env_status = ENV_RUNNING;
-
+		
 		// Hint, Lab 0: An environment has started running. We should keep track of that somewhere, right?
+		e->env_runs++;
 
 		// restore e's address space
 		if(e->env_type != ENV_TYPE_GUEST)
