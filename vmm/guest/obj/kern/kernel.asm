@@ -11117,6 +11117,7 @@ env_run(struct Env *e)
   8004209118:	00 00 00 
 
 		// Hint, Lab 0: An environment has started running. We should keep track of that somewhere, right?
+    e->env_runs++;
 
 		// restore e's address space
 		if(e->env_type != ENV_TYPE_GUEST)
