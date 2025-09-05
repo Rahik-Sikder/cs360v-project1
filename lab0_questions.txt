@@ -1,0 +1,55 @@
+1. Technically, the function doesn't have any return value because the iretq instruction jumps back to the previous user-mode instruction. However, one way to look at it is to say that the RAX register contains the return value of the function, since this register is normally associated with holding the return value. This register is written to when the POPA instruction executes, restoring register values from the trap frame that we moved onto the stack.
+
+2. The rip register contains the next instruction to execute. We see 0x800020 as the next instruction to execute after the function has been completed.
+
+3.0x800020:    movabs $0xef7fe000,%rax
+   0x80002a:    cmp    %rax,%rsp
+   0x80002d:    jne    0x800033
+   0x80002f:    pushq  $0x0
+   0x800031:    pushq  $0x0
+
+4. 
+push %rbp
+Pushes the caller’s base pointer onto the stack.
+
+mov %rsp,%rbp
+Moves the current stack pointer into the base pointer, creating a new stack frame.
+
+push %rbx
+Saves the rbx register onto the stack.
+
+sub $0x18,%rsp
+Allocates 24 bytes in the stack, pushes the stack pointer down by 24 bytes (0x18 in decimal is 24).
+
+5.
+--- push   %rbp ---
+PC: 0x800420960f
+rsp : 0x      8004232f98 -> 0x      8004232f90
+rip : 0x      8004209602 -> 0x      8004209603
+
+Explanation: The Stack pointer is decremented 64 bits to store the frame pointer. Instruction pointer moved to the next instruction.
+
+--- mov %rsp,%rbp ---
+PC: 0x8004209619
+rbp : 0x      8004232fc0 -> 0x      8004232f90
+rip : 0x      8004209603 -> 0x      8004209606
+
+Explanation: The value of the stack pointer from the previous instruction 0x8004232f90 is moved into the base pointer. 
+
+--- push %rbx ---
+PC: 0x0000008004209607
+rsp : 0x      8004232f90 -> 0x      8004232f88
+rip : 0x      8004209606 -> 0x      8004209607
+
+Explanation: The Stack pointer is decremented 64 bits to store the rbx register. Instruction pointer moved to the next instruction.
+
+
+--- sub $0x18,%rsp ---
+PC: 0x8004209625
+rsp : 0x      8004232f88 -> 0x      8004232f70
+rip : 0x      8004209607 -> 0x      800420960b
+
+Explanation: The Stack pointer is decremented  0x18 bytes to store the rbx register. Instruction pointer moved to the next instruction.
+
+
+6. This change would introduce an error since now the stack pointer is set to 0, and whenever POPA executes, we will try to restore register values from the stack, but this will cause a page fault and an error since this memory region is typically restricted.
