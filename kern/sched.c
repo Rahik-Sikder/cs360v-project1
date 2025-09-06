@@ -40,7 +40,7 @@ sched_yield(void)
 		i = curenv-envs;
 	else
 		i = NENV-1;
-	//cprintf("sched_yield searching from %d\n", i);
+	cprintf("sched_yield searching from %d\n", i);
 
 	// Loop through all the environments at most once.
 	for (j = 1; j <= NENV; j++) {
@@ -48,12 +48,28 @@ sched_yield(void)
 		// If this environment is runnable, run it.
 		if (envs[k].env_status == ENV_RUNNABLE) {
             /* Your code here */
+			if(envs[k].env_type == ENV_TYPE_GUEST) {
+				int res = vmxon();
+				if (res < 0){
+					env_destroy(&envs[k]);
+					continue;
+				}
+
+			}
+
 			env_run(&envs[k]);
+			
 		}
 	}
 
 	if (curenv && curenv->env_status == ENV_RUNNING) {
         /* Your code here */
+		if(curenv->env_type == ENV_TYPE_GUEST) {
+			int res = vmxon();
+			if (res < 0){
+				env_destroy(curenv);
+			}
+		}
 		env_run(curenv);
 	}
 

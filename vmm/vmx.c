@@ -60,9 +60,11 @@ bool vmx_sel_resume(int num) {
  */
 bool vmx_check_support() {
 	uint32_t eax, ebx, ecx, edx;
-	cpuid( 0, &eax, &ebx, &ecx, &edx );
+	cpuid( 1, &eax, &ebx, &ecx, &edx );
 	/* Your code here */
-    panic("vmx_check_support not implemented\n");
+	if(BIT(ecx, 5) == 1){
+		return true;
+	}
 	cprintf("[VMM] VMX extension not supported.\n");
 	return false;
 }
@@ -82,9 +84,15 @@ bool vmx_check_support() {
  */
 bool vmx_check_ept() {
 	/* Your code here */
-    panic("vmx_check_ept not implemented\n");
-	cprintf("[VMM] EPT extension not supported.\n");
-	return false;
+	uint32_t  proc_based_ctls = (uint32_t)(read_msr(IA32_VMX_PROCBASED_CTLS) >> 32);
+	uint32_t  proc_based_ctls2 = (uint32_t)(read_msr(IA32_VMX_PROCBASED_CTLS2) >> 32);
+
+	if(BIT(proc_based_ctls, 31) == 0 || BIT(proc_based_ctls2, 1) == 0){
+		cprintf("[VMM] EPT extension not supported.\n");
+		return false;
+	}
+
+	return true;
 }
 
 /* Checks if curr_val is compatible with fixed0 and fixed1
