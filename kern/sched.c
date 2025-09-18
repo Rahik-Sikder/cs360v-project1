@@ -47,7 +47,9 @@ sched_yield(void)
 		k = (j + i) % NENV;
 		// If this environment is runnable, run it.
 		if (envs[k].env_status == ENV_RUNNABLE) {
-            /* Your code here */
+            
+			/* Your code here */
+
 			if(envs[k].env_type == ENV_TYPE_GUEST) {
 				int res = vmxon();
 				if (res < 0){
@@ -69,8 +71,9 @@ sched_yield(void)
 			if (res < 0){
 				env_destroy(curenv);
 			}
+		} else {
+			env_run(curenv);
 		}
-		env_run(curenv);
 	}
 
 	// sched_halt never returns

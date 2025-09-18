@@ -1,0 +1,34 @@
+Pre-lab Questions:
+
+1. The cpuid() function returns information about the processor's capabilities. It's used in the function vmx_check_support() to determine whether the processor supports VMX operations.
+
+2. In cpuid() the asm volatile places the return values, meant for the eax, ebx, ecx, edx registers, into created uint32_t variables. Then the values are assigned to dereferenced input pointers.
+
+3.
+eax = 0xd
+ebx = 0x756e6547
+ecx = 0x6c65746e
+edx = 0x49656e69
+
+4. First need to change endian-ness
+
+ebx = 0x756e6547 => 47656e75
+edx = 0x49656e69 => 696e6549
+ecx = 0x6c65746e => 6e74656c
+
+Gets the following string: "GenuineIntel"
+
+This corresponds to the processor manufacturing ID string for Intel processors as well as the Apple Rosetta 2 virtual machine. 
+
+5. The VmxGuestInfo struct holds the following information:
+- The physical size of the VM
+- The pointer to the corresponding vmcs
+- An exception bitmap for what what excpetions should cause a VM exit
+- Two IO bitmaps for what what I/O accesses should cause a VM exit
+- MSR related fields. How many MSRs are present, what to load when going to Guest, what to load when going to Host
+- The number of virtual cpus assigned to the guest OS, needed to determine multi-threading capabilities
+
+6. The vmcs pointer points to data structure called the "Virtual-Machine Control Structure". This data structure contains information about the state of the guest OS and is used to manage transitions between VMX entry and exit operations.  
+
+7.* What assembly instruction initializes the vmcs pointer? In other words, how do we change the vmcs pointer?
+
