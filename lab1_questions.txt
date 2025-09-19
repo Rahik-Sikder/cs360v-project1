@@ -1,8 +1,8 @@
 Pre-lab Questions:
 
-1. The cpuid() function returns information about the processor's capabilities. It's used in the function vmx_check_support() to determine whether the processor supports VMX operations.
+1. The cpuid() assembly instruction returns information about the processor's capabilities, storing the results into the eax, ebx, ecx, and edx registers. The data outputted to these registers will change based off the input value in eax set by info. The data is then copied from the registers into the local c uint32_t variables passed in (eax, ebx, ecx, edx). It's used in the function vmx_check_support() to determine whether the processor supports VMX operations.
 
-2. In cpuid() the asm volatile places the return values, meant for the eax, ebx, ecx, edx registers, into created uint32_t variables. Then the values are assigned to dereferenced input pointers.
+2. In cpuid() the asm volatile places the return values, meant for the eax, ebx, ecx, edx registers, into created uint32_t variables (eax, ebx, ecx, edx). Then the values are assigned to dereferenced input pointers.
 
 3.
 eax = 0xd
@@ -30,5 +30,4 @@ This corresponds to the processor manufacturing ID string for Intel processors a
 
 6. The vmcs pointer points to data structure called the "Virtual-Machine Control Structure". This data structure contains information about the state of the guest OS and is used to manage transitions between VMX entry and exit operations.  
 
-7.* What assembly instruction initializes the vmcs pointer? In other words, how do we change the vmcs pointer?
-
+7. The VMPTRLD instruction initializes the VMCS pointer and is called in vmx.c, loading the pointer to the VMCS into the processor VMCS pointer. VMPTRLD changes the active VMCS and determines which structure instructions such as vmwrite, vmread, etc, will apply to.
