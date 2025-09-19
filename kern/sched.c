@@ -49,7 +49,7 @@ sched_yield(void)
 		if (envs[k].env_status == ENV_RUNNABLE) {
             
 			/* Your code here */
-
+		#ifndef VMM_GUEST
 			if(envs[k].env_type == ENV_TYPE_GUEST) {
 				int res = vmxon();
 				if (res < 0){
@@ -58,7 +58,7 @@ sched_yield(void)
 				}
 
 			}
-
+		#endif
 			env_run(&envs[k]);
 			
 		}
@@ -66,6 +66,7 @@ sched_yield(void)
 
 	if (curenv && curenv->env_status == ENV_RUNNING) {
         /* Your code here */
+	#ifndef VMM_GUEST
 		if(curenv->env_type == ENV_TYPE_GUEST) {
 			int res = vmxon();
 			if (res < 0){
@@ -74,6 +75,8 @@ sched_yield(void)
 		} else {
 			env_run(curenv);
 		}
+	#endif
+
 	}
 
 	// sched_halt never returns
