@@ -68,14 +68,15 @@ sched_yield(void)
         /* Your code here */
 	#ifndef VMM_GUEST
 		if(curenv->env_type == ENV_TYPE_GUEST) {
+			if(curenv->env_vmxinfo.vcpunum != cpunum())
+				return;
 			int res = vmxon();
 			if (res < 0){
 				env_destroy(curenv);
 			}
-		} else {
-			env_run(curenv);
 		}
 	#endif
+		env_run(curenv);		
 
 	}
 
