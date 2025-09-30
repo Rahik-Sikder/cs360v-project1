@@ -1,7 +1,6 @@
 1. Having EPT supports means VM memory accesses can be virutalized through hardware instead of software. This means instead of having the VMM manage a shadow page table, new memory accesses for virtual Guest processes are routed through the EPT register pointing towards an Extended Page Table structure. Additionally, already translated guest virutal to host physical addresses are present in the TLB. The primary motivate for hardware virutalization support is for better performance on page faults, such as on Guest page allocations and table writes.
 
-We know our VM has EPT support (???)
-
+We know if our VM supports EPT by using the vmx_check_ept function which we implemented in the previous lab. This function checks if secondary VMX controls are enabled, and if they are then checks if the EPT bit is set in the MSR that has secondary VMX controls.
 
 2. ELF Headers:  
 An ELF header is section of metadata about the format of an ELF file, aka an Executable and Linkable Format file.
