@@ -453,6 +453,7 @@ static int
 sys_ept_map(envid_t srcenvid, void *srcva,
 	    envid_t guest, void* guest_pa, int perm)
 {
+	cprintf("Entering sys_ept_map\n");
 	struct Env *src_env = NULL;
 	struct Env *guest_env = NULL;
 	
@@ -483,6 +484,8 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 	}
 
 	page->pp_ref++;
+
+	cprintf("Exiting sys_ept_map\n");	
 
     return 0;
 }

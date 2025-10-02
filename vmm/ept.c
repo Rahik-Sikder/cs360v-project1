@@ -49,7 +49,9 @@ static inline int epte_present(epte_t epte)
 static int ept_lookup_gpa(epte_t* eptrt, void *gpa,
 			  int create, epte_t **epte_out) {
     /* Your code here */
-	if (eptrt == NULL) {
+	cprintf("Entering ept_lookup_gpa\n");
+
+	if (eptrt == NULL || gpa == NULL) {
         cprintf("eptrt null\n");
 		return -E_INVAL;
     }
@@ -67,6 +69,7 @@ static int ept_lookup_gpa(epte_t* eptrt, void *gpa,
 	if(epte_out) {
 		*epte_out = epte;
 	}
+	cprintf("Exiting ept_lookup_gpa\n");
 
     return 0;
 }
@@ -145,6 +148,8 @@ int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm,
         int overwrite) {
 
+	cprintf("Entering ept_map_hva2gpa\n");
+
 	epte_t* pte;
 	int success	= ept_lookup_gpa(eptrt, gpa, 1, &pte);
 	if( success < 0 ) {
@@ -157,6 +162,7 @@ int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm,
 
 	*pte = PADDR(hva)|perm|__EPTE_IPAT|__EPTE_TYPE(EPTE_TYPE_WB);
 
+	cprintf("Exiting ept_map_hva2gpa\n");
     return 0;
 }
 
