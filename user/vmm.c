@@ -94,7 +94,7 @@ copy_guest_kern_gpa( envid_t guest, char* fname ) {
 	}
 	cprintf("Exiting copy_guest_kern_gpa\n");
 
-	return -E_NO_SYS;
+	return 0;
 }
 
 void
