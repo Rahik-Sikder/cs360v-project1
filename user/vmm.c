@@ -22,7 +22,8 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 	
 	envid_t host_id = sys_getenvid();
 
-	for(int i = 0;i<filesz;i+=PGSIZE) {
+	int i;
+	for(i = 0;i<filesz;i+=PGSIZE) {
 		void* va = malloc(PGSIZE);
 		if (va == NULL) {
 			return -E_NO_MEM;
