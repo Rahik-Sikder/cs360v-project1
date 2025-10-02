@@ -19,7 +19,6 @@
 static int
 map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz, 
 	      int fd, size_t filesz, off_t fileoffset ) {
-	cprintf("Entering map_in_guest\n");
 	
 	envid_t host_id = sys_getenvid();
 
@@ -40,8 +39,6 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 			return map_result;
 		}
 	}
-
-	cprintf("Exiting map_in_guest\n");
 	
 	return 0;
 } 
@@ -55,7 +52,6 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 static int
 copy_guest_kern_gpa( envid_t guest, char* fname ) {
 
-	cprintf("Entering copy_guest_kern_gpa\n");
 	/* Your code here */
 	struct File *file = NULL;
 	int fd = open(fname, O_RDONLY);
@@ -92,7 +88,6 @@ copy_guest_kern_gpa( envid_t guest, char* fname ) {
 			}
 		}
 	}
-	cprintf("Exiting copy_guest_kern_gpa\n");
 
 	return 0;
 }
