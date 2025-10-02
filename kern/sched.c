@@ -51,16 +51,12 @@ sched_yield(void)
 			/* Your code here */
 		#ifndef VMM_GUEST
 			if(envs[k].env_type == ENV_TYPE_GUEST) {
-				if(curenv->env_vmxinfo.vcpunum != cpunum())
-					return;
 				int res = vmxon();
 				if (res < 0){
 					env_destroy(&envs[k]);
 					continue;
 				}
 
-			} else {
-				env_run(curenv);
 			}
 		#endif
 			env_run(&envs[k]);
@@ -133,4 +129,3 @@ sched_halt(void)
 		"hlt\n"
 		: : "a" (thiscpu->cpu_ts.ts_esp0));
 }
-
