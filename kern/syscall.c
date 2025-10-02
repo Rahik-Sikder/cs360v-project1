@@ -428,7 +428,7 @@ sys_vmx_incr_vmdisk_number() {
 	vmx_incr_vmdisk_number();
 }
 
-// Maps a page from the evnironment corresponding to envid into the guest vm 
+// Maps a page from the environment corresponding to envid into the guest vm
 // environments phys addr space.  Assuming the mapping is successful, this should
 // also increment the reference count of the mapped page.
 //
@@ -453,7 +453,35 @@ static int
 sys_ept_map(envid_t srcenvid, void *srcva,
 	    envid_t guest, void* guest_pa, int perm)
 {
-    /* Your code here */
+	struct Env *src_env = NULL;
+	struct Env *guest_env = NULL;
+	
+	if (envid2env(srcenvid, &src_env, 1) < 0 || envid2env(guest, &guest_env, 1) < 0) {
+		return -E_BAD_ENV;
+	}
+
+	if (srcva >= UTOP || PGOFF(srcva) != 0  || guest_pa >= (void *) guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa) != 0) {
+		return -E_INVAL;
+	}
+
+	struct PageInfo *page = page_lookup(src_env->env_pml4e, srcva, NULL);
+	
+	if ( page == NULL ) {
+		return -E_INVAL;
+	}
+
+	if( perm & PTE_W && ((uint64_t)srcva & PTE_W == 0) ) {
+		return -E_INVAL;
+	}
+
+	int success = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(page), (uint64_t)guest_pa, perm, 0);
+
+	if( success < 0 ) {
+		return -E_NO_MEM;
+	}
+
+	page->pp_ref++;
+
     return 0;
 }
 

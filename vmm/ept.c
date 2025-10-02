@@ -49,6 +49,25 @@ static inline int epte_present(epte_t epte)
 static int ept_lookup_gpa(epte_t* eptrt, void *gpa,
 			  int create, epte_t **epte_out) {
     /* Your code here */
+	if (eptrt == NULL) {
+        cprintf("eptrt null\n");
+		return -E_INVAL;
+    }
+	epte_t *epte = pml4e_walk(eptrt, gpa, create);
+	if (epte == NULL && create ) {
+		cprintf("no mem\n");
+		return -E_NO_MEM;
+	}
+
+	if( epte == NULL && !create ) {
+		cprintf("no ent\n");
+		return -E_NO_ENT;
+	}
+
+	if(epte_out) {
+		*epte_out = epte;
+	}
+
     return 0;
 }
 
@@ -125,7 +144,19 @@ int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 //       You should set the type to EPTE_TYPE_WB and set __EPTE_IPAT flag.
 int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm,
         int overwrite) {
-    /* Your code here */
+
+	epte_t* pte;
+	int success	= ept_lookup_gpa(eptrt, gpa, 1, &pte);
+	if( success < 0 ) {
+		return success;
+	}
+
+	if (!overwrite && epte_present(*pte)) {
+		return -E_INVAL;
+	}
+
+	*pte = PADDR(hva)|perm|__EPTE_IPAT|__EPTE_TYPE(EPTE_TYPE_WB);
+
     return 0;
 }
 
