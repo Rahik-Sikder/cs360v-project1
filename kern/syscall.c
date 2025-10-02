@@ -460,7 +460,8 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 		return -E_BAD_ENV;
 	}
 
-	if (srcva >= UTOP || PGOFF(srcva) != 0  || guest_pa >= (void *) guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa) != 0) {
+	if ((uintptr_t)srcva >= UTOP || PGOFF(srcva) != 0  ||
+	    (uintptr_t)guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa) != 0) {
 		return -E_INVAL;
 	}
 
@@ -470,11 +471,12 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	}
 
-	if( perm & PTE_W && ((uint64_t)srcva & PTE_W == 0) ) {
-		return -E_INVAL;
+	pte_t *ppte = NULL;
+	if ( (perm & PTE_W) && !((page_lookup(src_env->env_pml4e, srcva, ppte)) && (!ppte || !(*ppte & PTE_W))) ) {
+			return -E_INVAL;
 	}
 
-	int success = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(page), (uint64_t)guest_pa, perm, 0);
+	int success = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(page), (void*)guest_pa, perm, 0);
 
 	if( success < 0 ) {
 		return -E_NO_MEM;
