@@ -472,7 +472,7 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 	}
 
 	pte_t *ppte = NULL;
-	if ( (perm & PTE_W) && !((page_lookup(src_env->env_pml4e, srcva, ppte)) && (!ppte || !(*ppte & PTE_W))) ) {
+	if ( (perm & PTE_W) && !((page_lookup(src_env->env_pml4e, srcva, &ppte)) && (!ppte || !(*ppte & PTE_W))) ) {
 			return -E_INVAL;
 	}
 
