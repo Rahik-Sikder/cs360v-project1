@@ -22,10 +22,10 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 	
 	envid_t host_id = sys_getenvid();
 
-	int i;
+	size_t i;
 	for(i = 0;i<filesz;i+=PGSIZE) {
 		void* va = malloc(PGSIZE);
-		if (va == NULL) {
+		if (va == 0) {
 			return -E_NO_MEM;
 		}
 
@@ -35,7 +35,7 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 			return read_result;
 		}
 
-		int map_result = sys_ept_map( host_id, va, guest, (void*)(gpa + i),  __EPTE_FULL);
+		int map_result = sys_ept_map( host_id, ROUNDDOWN(va, PGSIZE), guest, ROUNDDOWN((void*)(gpa + i), PGSIZE),  __EPTE_FULL);
 		if (map_result < 0) {
 			free(va);
 			return map_result;
@@ -66,7 +66,7 @@ copy_guest_kern_gpa( envid_t guest, char* fname ) {
 
 	// how do we know how big the header is, got from big dawg
 	uint8_t *binary = malloc(1024);
-	if (binary == NULL) {
+	if (binary == 0) {
 		return -E_NO_MEM;
 	}
 
