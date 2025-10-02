@@ -31,13 +31,11 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 
 		int read_result = read(fd, va, PGSIZE);
 		if (read_result < 0) {
-			free(va);
 			return read_result;
 		}
 
 		int map_result = sys_ept_map( host_id, ROUNDDOWN(va, PGSIZE), guest, ROUNDDOWN((void*)(gpa + i), PGSIZE),  __EPTE_FULL);
 		if (map_result < 0) {
-			free(va);
 			return map_result;
 		}
 	}
@@ -72,7 +70,6 @@ copy_guest_kern_gpa( envid_t guest, char* fname ) {
 
 	int read_result = read(fd, binary, 1024);
 	if (read_result < 0) {
-		free(binary);
 		return read_result;
 	}
 

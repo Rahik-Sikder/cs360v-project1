@@ -472,9 +472,9 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	}
 
-	if ( (perm & PTE_W) && (!ppte || !(*ppte & PTE_W)) ) {
-			return -E_INVAL;
-	}
+	// if ( (perm & PTE_W) && (!ppte || !(*ppte & PTE_W)) ) {
+	// 		return -E_INVAL;
+	// }
 
 	int success = ept_map_hva2gpa(guest_env->env_pml4e, (void*)page2kva(page), (void*)guest_pa, perm, 0);
 
