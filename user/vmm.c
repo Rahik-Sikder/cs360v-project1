@@ -19,8 +19,29 @@
 static int
 map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz, 
 	      int fd, size_t filesz, off_t fileoffset ) {
-	/* Your code here */
-	return -E_NO_SYS;
+	
+	envid_t host_id = sys_getenvid();
+
+	for(int i = 0;i<filesz;i+=PGSIZE) {
+		void* va = malloc(PGSIZE);
+		if (va == NULL) {
+			return -E_NO_MEM;
+		}
+
+		int read_result = read(fd, va, PGSIZE);
+		if (read_result < 0) {
+			free(va);
+			return read_result;
+		}
+
+		int map_result = sys_ept_map( host_id, va, guest, (void*)(gpa + i),  __EPTE_FULL);
+		if (map_result < 0) {
+			free(va);
+			return map_result;
+		}
+	}
+	
+	return 0;
 } 
 
 // Read the ELF headers of kernel file specified by fname,
@@ -32,6 +53,43 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 static int
 copy_guest_kern_gpa( envid_t guest, char* fname ) {
 	/* Your code here */
+	struct File *file = NULL;
+	int fd = open(fname, O_RDONLY);
+	if (fd < 0) {
+		return fd;
+	}
+
+
+	struct Elf *elf = NULL;
+	struct Proghdr *ph, *eph;
+
+	// how do we know how big the header is, got from big dawg
+	uint8_t *binary = malloc(1024);
+	if (binary == NULL) {
+		return -E_NO_MEM;
+	}
+
+	int read_result = read(fd, binary, 1024);
+	if (read_result < 0) {
+		free(binary);
+		return read_result;
+	}
+
+	elf = (struct Elf *) binary;
+
+	if (elf && elf->e_magic == ELF_MAGIC) {
+		ph  = (struct Proghdr *)((uint8_t *)elf + elf->e_phoff);
+		eph = ph + elf->e_phnum;
+		for(;ph < eph; ph++) {
+			if (ph->p_type == ELF_PROG_LOAD) {
+				int result = map_in_guest(guest, ph->p_pa, ph->p_memsz, fd, ph->p_filesz, ph->p_offset);
+				if (result < 0) {
+					return result;
+				}
+			}
+		}
+	}
+
 	return -E_NO_SYS;
 }
 
