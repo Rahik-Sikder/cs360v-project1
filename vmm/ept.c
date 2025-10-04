@@ -49,6 +49,18 @@ static inline int epte_present(epte_t epte)
 static int ept_lookup_gpa(epte_t* eptrt, void *gpa,
 			  int create, epte_t **epte_out) {
     /* Your code here */
+
+	if(eptrt == NULL)
+		return -E_INVAL;
+	
+	*epte_out = (epte_t *) pml4e_walk(eptrt, gpa, create);
+	
+	if(*epte_out == NULL)
+		if(!create)
+			return -E_NO_ENT;
+		else 
+			return -E_NO_MEM;
+
     return 0;
 }
 
@@ -109,6 +121,7 @@ int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 
     /* Your code here */
     return 0;
+	
 }
 
 // Map host virtual address hva to guest physical address gpa,
@@ -123,10 +136,21 @@ int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 // Hint: use ept_lookup_gpa to create the intermediate
 //       ept levels, and return the final epte_t pointer.
 //       You should set the type to EPTE_TYPE_WB and set __EPTE_IPAT flag.
-int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm,
-        int overwrite) {
+int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm, int overwrite) {
     /* Your code here */
-    return 0;
+
+	epte_t* found_pte;
+	int success = ept_lookup_gpa(eptrt, gpa, true, &found_pte);
+	if(success < 0)
+		return success;
+
+	if(!overwrite && epte_present(found_pte))
+		return -E_INVAL;
+
+	*found_pte |= __EPTE_TYPE(EPTE_TYPE_WB);
+	*found_pte |= __EPTE_IPAT;
+
+    return success;
 }
 
 int ept_alloc_static(epte_t *eptrt, struct VmxGuestInfo *ginfo) {

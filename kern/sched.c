@@ -47,16 +47,17 @@ sched_yield(void)
 		k = (j + i) % NENV;
 		// If this environment is runnable, run it.
 		if (envs[k].env_status == ENV_RUNNABLE) {
-            
 			/* Your code here */
 		#ifndef VMM_GUEST
 			if(envs[k].env_type == ENV_TYPE_GUEST) {
+				if (envs[k].env_vmxinfo.vcpunum != cpunum()) {
+                    continue;
+                }
 				int res = vmxon();
 				if (res < 0){
 					env_destroy(&envs[k]);
 					continue;
 				}
-
 			}
 		#endif
 			env_run(&envs[k]);
@@ -68,15 +69,16 @@ sched_yield(void)
         /* Your code here */
 	#ifndef VMM_GUEST
 		if(curenv->env_type == ENV_TYPE_GUEST) {
+			if (curenv->env_vmxinfo.vcpunum != cpunum()) {
+				return;
+			}
 			int res = vmxon();
 			if (res < 0){
 				env_destroy(curenv);
 			}
-		} else {
-			env_run(curenv);
 		}
 	#endif
-
+		env_run(curenv);
 	}
 
 	// sched_halt never returns
