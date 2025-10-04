@@ -140,9 +140,9 @@ int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm, int overwrite
     /* Your code here */
 
 	epte_t* found_pte;
-	int success = ept_lookup_gpa(eptrt, gpa, true, &found_pte);
-	if(success < 0)
-		return success;
+	int result;
+	if(result = ept_lookup_gpa(eptrt, gpa, true, &found_pte) < 0)
+		return result;
 
 	if(!overwrite && epte_present(*found_pte))
 		return -E_INVAL;

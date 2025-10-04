@@ -20,7 +20,36 @@ static int
 map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz, 
 	      int fd, size_t filesz, off_t fileoffset ) {
 	/* Your code here */
-	return -E_NO_SYS;
+
+	envid_t host_id = sys_getenvid();
+
+	// Loop through all the pages in the region
+	for(int i = 0; i < filesz; i+=PGSIZE){
+
+		// Need to malloc page to copy from fd
+		void *host_va;
+		sys_page_alloc(host_id, host_va, __EPTE_FULL);
+		if(host_va == NULL){
+			return -E_NO_MEM;
+		}
+
+		// Move fd and read
+		size_t to_read = MIN(PGSIZE, filesz - i);
+		if(readn(fd, host_va, to_read) != to_read){
+			free(host_va);
+			return -E_INVAL;
+		}	
+		
+		// map
+		int result;
+		if(result = sys_ept_map(host_id, host_va, guest, (void*)(gpa + i), __EPTE_FULL) < 0){
+			free(host_va);
+			return result;
+		}
+
+	}
+
+	return 0;
 } 
 
 // Read the ELF headers of kernel file specified by fname,
@@ -32,7 +61,47 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 static int
 copy_guest_kern_gpa( envid_t guest, char* fname ) {
 	/* Your code here */
-	return -E_NO_SYS;
+
+	// Get env
+	struct Env *guest_env;
+	if(envid2env(guest, &guest_env, true) < 0)
+		return -E_BAD_ENV;
+
+	int fd;
+	if((fd = open(fname, O_RDONLY)) < 0){
+		return fd;
+	}
+
+	struct Elf *elf;
+	struct Proghdr *ph, *eph;
+
+	elf = malloc(sizeof(struct Elf));
+	if(elf == NULL)
+		return -E_NO_MEM;
+
+	if(readn(fd, elf, sizeof(struct Elf)) != sizeof(struct Elf)
+		|| elf->e_magic != ELF_MAGIC){
+		close(fd);
+		return -E_INVAL;
+	}
+
+	if (elf && elf->e_magic == ELF_MAGIC) {
+		ph = (struct Proghdr *)((uint8_t *)elf + elf->e_phoff);
+		eph = ph + elf->e_phnum;
+		for(;ph < eph; ph++) {
+			if (ph->p_type == ELF_PROG_LOAD) {
+				int result;
+				if(result = map_in_guest(guest, (void *)ph->p_va, ph->p_memsz, fd, ph->p_filesz, ph->p_offset) < 0){
+					return result;
+				}
+			}	
+		}
+
+	}
+	close(fd);
+	free(elf);
+
+	return 0;
 }
 
 void

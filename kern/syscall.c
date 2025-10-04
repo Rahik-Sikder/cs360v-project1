@@ -480,9 +480,9 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 	if(src_page == NULL || ((perm & PTE_W) && !((int)src_pte & __EPTE_WRITE)))
 		return -E_INVAL;
 	
-	int success = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(src_page), guest_pa, perm, 0);
-	if(success < 0)
-		return success; 
+	int result;
+	if(result = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(src_page), guest_pa, perm, 0) < 0)
+		return result; 
 
 	src_page->pp_ref++;
 
