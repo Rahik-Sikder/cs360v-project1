@@ -55,12 +55,12 @@ static int ept_lookup_gpa(epte_t* eptrt, void *gpa,
 	
 	*epte_out = (epte_t *) pml4e_walk(eptrt, gpa, create);
 	
-	if(*epte_out == NULL)
+	if(*epte_out == NULL){
 		if(!create)
 			return -E_NO_ENT;
 		else 
 			return -E_NO_MEM;
-
+	}
     return 0;
 }
 
@@ -144,13 +144,12 @@ int ept_map_hva2gpa(epte_t* eptrt, void* hva, void* gpa, int perm, int overwrite
 	if(success < 0)
 		return success;
 
-	if(!overwrite && epte_present(found_pte))
+	if(!overwrite && epte_present(*found_pte))
 		return -E_INVAL;
 
-	*found_pte |= __EPTE_TYPE(EPTE_TYPE_WB);
-	*found_pte |= __EPTE_IPAT;
+	*found_pte = PADDR(hva)|perm|__EPTE_IPAT|__EPTE_TYPE(EPTE_TYPE_WB);
 
-    return success;
+    return 0;
 }
 
 int ept_alloc_static(epte_t *eptrt, struct VmxGuestInfo *ginfo) {

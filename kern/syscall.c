@@ -458,15 +458,15 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 	// Check if srcenvid or guest exists
 	struct Env *src_env;
 	struct Env *guest_env;
-	if(envid2env(srcenvid, &src_env, true) < 0 || envid2env(guest, &guest_pa, true) < 0)
+	if(envid2env(srcenvid, &src_env, true) < 0 || envid2env(guest, &guest_env, true) < 0)
 		return -E_BAD_ENV;
 
 	// Check if srcva >= UTOP or srcva is not page-aligned
-	if(srcva >= UTOP || !PGOFF(srcva))
+	if(srcva >= UTOP || PGOFF(srcva))
 		return -E_INVAL;
 
 	// Check if guest_pa >= guest physical size or guest_pa is not page-aligned
-	if(guest_pa >= guest_env->env_vmxinfo.phys_sz || !PGOFF(guest_pa))
+	if(guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa))
 		return -E_INVAL;
 
 	// Check perms - TODO: Double check this perm check
@@ -480,7 +480,7 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 	if(src_page == NULL || ((perm & PTE_W) && !((int)src_pte & __EPTE_WRITE)))
 		return -E_INVAL;
 	
-	int success = ept_map_hva2gpa(guest_env->env_pml4e, srcva, guest_pa, perm, 0);
+	int success = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(src_page), guest_pa, perm, 0);
 	if(success < 0)
 		return success; 
 
