@@ -1,3 +1,5 @@
+Using 2 slip days on lab 2.
+
 1. Having EPT supports means VM memory accesses can be virutalized through hardware instead of software. This means instead of having the VMM manage a shadow page table, new memory accesses for virtual Guest processes are routed through the EPT register pointing towards an Extended Page Table structure. Additionally, already translated guest virutal to host physical addresses are present in the TLB. The primary motivate for hardware virutalization support is for better performance on page faults, such as on Guest page allocations and table writes.
 
 We know if our VM supports EPT by using the vmx_check_ept function which we implemented in the previous lab. This function checks if secondary VMX controls are enabled, and if they are then checks if the EPT bit is set in the MSR that has secondary VMX controls.
@@ -6,14 +8,9 @@ We know if our VM supports EPT by using the vmx_check_ept function which we impl
 An ELF header is section of metadata about the format of an ELF file, aka an Executable and Linkable Format file.
 The ELF header contains a the "magic number" (0x7f -> "ELF") as well as information about the target architecture, object file type, location of tables for program and section headers, and other control/configurationn related information. 
 
-3. Set a breakpoint at the function load_icode() in env.c
-What do you notice about the Proghdr object? 
-What kinds of metadata does the object have? 
-What is this function doing? It is described in the function header, but try to put it in your own words. 
+3. The Proghdr object represents one program segment, with fields illustrating how the the binary should be mapped into memory, with fields such as p_va representing where the binary should be loaded in memory. There are also fields such as p_flags (permissions for segment), p_offset (offset to segment), p_filesz(how large the segment to be loaded is), p_memsz (p_filesz + memory for .bss), and p_align(alignment of segment in memory). load_icode validates valid ELF header, switches to the page tables of the VM and then loops over all program headers, loading in one segment at a time. It also zeros out the bss region (between p_filesz-p_memsz) for all uninitalized variables. Finally, one page for the user stack is created, and the stack pointer and entry point are set.
 
-4. In our codebase, load_icode() does the work of loading the ELF binary image into the environment's user memory. Looking at this function, where does the memory for the Env get allocated? Where does the memory for the ELF header get allocated? Hint: you may have to check out what some constant values mean. 
-The memory for env gets allocated at the top of the user stack, 2 pages below the execption stack. The ELF header is contained in the binary ELF image that gets allocated before being passed into load_icode.
+4. The memory for env gets allocated at the top of the user stack, 2 pages below the execption stack. The ELF header is contained in the binary ELF image that gets allocated before being passed into load_icode.
 
 
-5. The first function you implement in this project will have you check many errors, prior to the actual function logic. What are some of the reasons why we must do this in OS level code that the user never sees? 
-We cannot segfault in kernel code since it runs in ring 0 and can cause the system to crash. We also want to be able to catch bugs early since they can appear later on, if not caught. 
+5. We cannot segfault in kernel code since it runs in ring 0 and can cause the system to crash. We also want to be able to catch bugs early since they can appear later on, if not caught. 

@@ -478,7 +478,6 @@ void asm_vmrun(struct Trapframe *tf) {
 
 	// Hint, Lab 0: tf_ds should have the number of runs, prior to entering the assembly!!
 	tf->tf_ds = curenv->env_runs;
-	cprintf("VMRUN: run %d\n", tf->tf_ds);
 	tf->tf_es = 0;
 	unlock_kernel();
 	asm(
@@ -567,7 +566,7 @@ void asm_vmrun(struct Trapframe *tf) {
 
 		"pop %%rax\n"	
 	        "\tmovq %%rax,96(%0)\n" 
-			
+
 		"pop  %%rbp; pop  %%rdx \n\t"
 		"setbe %c[fail](%0) \n\t"
 		: : "c"(tf), "d"((unsigned long)VMCS_HOST_RSP),
