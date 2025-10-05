@@ -17,6 +17,7 @@
 #include <kern/kclock.h>
 #include <kern/console.h>
 #include <kern/spinlock.h>
+#include <kern/macro.h>
 
 
 void vmx_list_vms() {
