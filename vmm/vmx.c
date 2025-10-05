@@ -553,22 +553,21 @@ void asm_vmrun(struct Trapframe *tf) {
 		 * Be careful that the number of pushes (above) and pops are symmetrical.
 		 */
 		/* Your code here */
-	     	//"\tmovw %%ds,128(%0)\n" 
-			"\tmovq %%rax,112(%0)\n" \
-	     	"\tmovq %%rbx,104(%0)\n" 
-	     	//"\tmovq %%rcx,96(%0)\n" 
-	     	"\tmovq %%rdx,88(%0)\n" 
-	     	"\tmovq %%rbp,80(%0)\n" \
-	     	"\tmovq %%rdi,72(%0)\n" \
-	     	"\tmovq %%rsi,64(%0)\n" \
-	     	"\tmovq %%r8,56(%0)\n" \
-	     	"\tmovq %%r9,48(%0)\n" \
-	     	"\tmovq %%r10,40(%0)\n" \
-	     	"\tmovq %%r11,32(%0)\n" \
-	     	"\tmovq %%r12,24(%0)\n" \
-	     	"\tmovq %%r13,16(%0)\n" \
-    	    "\tmovq %%r14,8(%0)\n" \
-	     	"\tmovq %%r15,0(%0)\n"	
+		"\tmovq %%r15, %c[r15](%0)\n" \
+		"\tmovq %%r14, %c[r14](%0)\n" \
+		"\tmovq %%r13, %c[r13](%0)\n" \
+		"\tmovq %%r12, %c[r12](%0)\n" \
+		"\tmovq %%r11, %c[r11](%0)\n" \
+		"\tmovq %%r10, %c[r10](%0)\n" \
+		"\tmovq %%r9, %c[r9](%0)\n"  \
+		"\tmovq %%r8, %c[r8](%0)\n"  \
+		"\tmovq %%rsi, %c[rsi](%0)\n" \
+		"\tmovq %%rdi, %c[rdi](%0)\n" \
+		"\tmovq %%rbp, %c[rbp](%0)\n" \
+		"\tmovq %%rdx, %c[rdx](%0)\n" \
+		"\tmovq %%rcx, %c[rcx](%0)\n" \
+		"\tmovq %%rbx, %c[rbx](%0)\n" \
+		"\tmovq %%rax, %c[rax](%0)\n" \
 		
 		"mov %%cr2, %%rax\n"
 		"mov %%rax, %c[cr2](%0)\n\t"
