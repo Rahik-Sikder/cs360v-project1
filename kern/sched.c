@@ -75,8 +75,7 @@ sched_yield(void)
 			if (res < 0){
 				env_destroy(curenv);
 			}
-		} else {
-		}
+		} 
 	#endif
 		env_run(curenv);
 	}

@@ -63,7 +63,6 @@ copy_guest_kern_gpa( envid_t guest, char* fname ) {
 	struct Elf *elf = NULL;
 	struct Proghdr *ph, *eph;
 
-	// how do we know how big the header is, got from big dawg
 	uint8_t *binary = malloc(1024);
 	if (binary == 0) {
 		return -E_NO_MEM;
