@@ -510,15 +510,18 @@ void asm_vmrun(struct Trapframe *tf) {
 		"mov $1, %%rdx\n\t"
         "cmp %%rdx, %%rax \n\t"
 
-		// needed in both cases, restore guest state
+
+		"jne .Lvmx_continue \n\t"
+		// Unsure why need to POPA twice for launch
 		"movq %0, %%rsp\n"
 		POPA
-		"je .Lvmx_launch \n\t"
-		"vmresume \n\t"
-		"jmp .Lvmx_return \n\t"
-		".Lvmx_launch:"
 		"vmlaunch\n"
 
+		".Lvmx_continue:"
+		"movq %0, %%rsp\n"
+		POPA
+		"vmresume \n\t"
+		
 		/* GUEST MODE */
 		/* Your code here:
 		 *
@@ -679,7 +682,7 @@ int vmx_vmrun( struct Env *e ) {
 
 	vmcs_write64( VMCS_GUEST_RSP, curenv->env_tf.tf_rsp  );
 	vmcs_write64( VMCS_GUEST_RIP, curenv->env_tf.tf_rip );
-    // panic("asm_vmrun is incomplete");
+    panic("asm_vmrun is incomplete");
 	asm_vmrun( &e->env_tf );
 	return 0;
 }
