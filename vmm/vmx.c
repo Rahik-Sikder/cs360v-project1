@@ -553,7 +553,9 @@ void asm_vmrun(struct Trapframe *tf) {
 		"\tmovq %%rcx, %c[rcx](%0)\n" \
 		"\tmovq %%rbx, %c[rbx](%0)\n" \
 		"\tmovq %%rax, %c[rax](%0)\n" \
-		"\tmovq %%cr2, %c[cr2](%0)\n"
+		
+		"\tmovq %%cr2, %%rax\n" \
+		"\tmovq %%rax, %c[cr2](%0)\n"
 
 		"pop  %%rbp; pop  %%rdx \n\t"
 		"setbe %c[fail](%0) \n\t"
