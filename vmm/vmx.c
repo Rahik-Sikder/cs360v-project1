@@ -569,8 +569,8 @@ void asm_vmrun(struct Trapframe *tf) {
 		"\tmovq %%rbx, %c[rbx](%0)\n" \
 		"\tmovq %%rax, %c[rax](%0)\n" \
 		
-		"mov %%cr2, %%rax\n"
-		"mov %%rax, %c[cr2](%0)\n\t"
+		"\tmovq %%cr2, %%rax\n" \
+		"\tmovq %%rax, %c[cr2](%0)\n"
 		
 		"pop %%rax\n"	
 	        "\tmovq %%rax,96(%0)\n" 
