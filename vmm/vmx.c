@@ -505,7 +505,7 @@ void asm_vmrun(struct Trapframe *tf) {
 		 *       to simplify the pointer arithmetic.
 		 */
 		/* Your code here */
-		"mov %c[launched](%0), %%rax \n\t"
+		"mov %%rax, %c[launched](%0)\n\t"
         "cmp $1, %%rax \n\t"
 
 		// needed in both cases, restore guest state
