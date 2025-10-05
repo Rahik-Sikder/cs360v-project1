@@ -538,22 +538,22 @@ void asm_vmrun(struct Trapframe *tf) {
 		 */
 		/* Your code here */
 
-		"\tmovq %c[r15](%0), %%r15\n" \
-		"\tmovq %c[r14](%0), %%r14\n" \
-		"\tmovq %c[r13](%0), %%r13\n" \
-		"\tmovq %c[r12](%0), %%r12\n" \
-		"\tmovq %c[r11](%0), %%r11\n" \
-		"\tmovq %c[r10](%0), %%r10\n" \
-		"\tmovq %c[r9](%0), %%r9\n"  \
-		"\tmovq %c[r8](%0), %%r8\n"  \
-		"\tmovq %c[rsi](%0), %%rsi\n" \
-		"\tmovq %c[rdi](%0), %%rdi\n" \
-		"\tmovq %c[rbp](%0), %%rbp\n" \
-		"\tmovq %c[rdx](%0), %%rdx\n" \
-		"\tmovq %c[rcx](%0), %%rcx\n" \
-		"\tmovq %c[rbx](%0), %%rbx\n" \
-		"\tmovq %c[rax](%0), %%rax\n" \
-		"\tmovq %c[cr2](%0), %%cr2\n"
+		"\tmovq %%r15, %c[r15](%0)\n" \
+		"\tmovq %%r14, %c[r14](%0)\n" \
+		"\tmovq %%r13, %c[r13](%0)\n" \
+		"\tmovq %%r12, %c[r12](%0)\n" \
+		"\tmovq %%r11, %c[r11](%0)\n" \
+		"\tmovq %%r10, %c[r10](%0)\n" \
+		"\tmovq %%r9, %c[r9](%0)\n"  \
+		"\tmovq %%r8, %c[r8](%0)\n"  \
+		"\tmovq %%rsi, %c[rsi](%0)\n" \
+		"\tmovq %%rdi, %c[rdi](%0)\n" \
+		"\tmovq %%rbp, %c[rbp](%0)\n" \
+		"\tmovq %%rdx, %c[rdx](%0)\n" \
+		"\tmovq %%rcx, %c[rcx](%0)\n" \
+		"\tmovq %%rbx, %c[rbx](%0)\n" \
+		"\tmovq %%rax, %c[rax](%0)\n" \
+		"\tmovq %%cr2, %c[cr2](%0)\n"
 
 		"pop  %%rbp; pop  %%rdx \n\t"
 		"setbe %c[fail](%0) \n\t"
