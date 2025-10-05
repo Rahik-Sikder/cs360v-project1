@@ -505,8 +505,10 @@ void asm_vmrun(struct Trapframe *tf) {
 		 *       to simplify the pointer arithmetic.
 		 */
 		/* Your code here */
-		"mov %%rax, %c[launched](%0)\n\t"
-        "cmp $1, %%rax \n\t"
+		// Check whether to goto launch or return
+		"mov %c[launched](%0), %%rax\n\t"
+		"mov $1, %%rdx\n\t"
+        "cmp %%rdx, %%rax \n\t"
 
 		// needed in both cases, restore guest state
 		"movq %0, %%rsp\n"
@@ -530,6 +532,7 @@ void asm_vmrun(struct Trapframe *tf) {
 		 */
 		".Lvmx_return: "
 
+		
 		/* POST VM EXIT... */
 		"mov %0, %c[wordsize](%%rsp) \n\t"
 		"pop %0 \n\t"
