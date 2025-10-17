@@ -21,22 +21,31 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 	      int fd, size_t filesz, off_t fileoffset ) {
 	
 	envid_t host_id = sys_getenvid();
+	
+	// Go through fileoffset
+	seek(fd, fileoffset);
 
-	size_t i;
-	for(i = 0;i<filesz;i+=PGSIZE) {
-		void* va = malloc(PGSIZE);
-		if (va == 0) {
+	// Loop through all the pages in the region
+	for(int i = 0; i < filesz; i+=PGSIZE){
+
+		// Need to malloc page to copy from fd
+		void *host_va = (void *) UTEMP;
+		if (sys_page_alloc(host_id, host_va, __EPTE_FULL) < 0){
 			return -E_NO_MEM;
 		}
 
-		int read_result = read(fd, va, PGSIZE);
-		if (read_result < 0) {
-			return read_result;
-		}
-
-		int map_result = sys_ept_map( host_id, ROUNDDOWN(va, PGSIZE), guest, ROUNDDOWN((void*)(gpa + i), PGSIZE),  __EPTE_FULL);
-		if (map_result < 0) {
-			return map_result;
+		// Move fd and read
+		size_t to_read = MIN(PGSIZE, filesz - i);
+		if(readn(fd, host_va, to_read) != to_read){
+			sys_page_unmap(host_id, host_va);
+			return -E_INVAL;
+		}	
+		
+		// map
+		int result = sys_ept_map(0, host_va, guest, (void*)(gpa + i), __EPTE_FULL);
+		if(result < 0){
+			sys_page_unmap(host_id, host_va);
+			return result;
 		}
 	}
 	

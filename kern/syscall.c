@@ -453,36 +453,42 @@ static int
 sys_ept_map(envid_t srcenvid, void *srcva,
 	    envid_t guest, void* guest_pa, int perm)
 {
-	struct Env *src_env = NULL;
-	struct Env *guest_env = NULL;
-	
-	if (envid2env(srcenvid, &src_env, 1) < 0 || envid2env(guest, &guest_env, 1) < 0) {
-		return -E_BAD_ENV;
+	int r;
+	struct Env *src_env, *guest_env;
+
+	if (srcenvid == 0) {
+		src_env = curenv;
+	} else if ((r = envid2env(srcenvid, &src_env, 1)) < 0) {
+		return r;
 	}
 
-	if ((uintptr_t)srcva >= UTOP || PGOFF(srcva) != 0  ||
-	    (uintptr_t)guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa) != 0) {
+	if ((r = envid2env(guest, &guest_env, 1)) < 0)
+		return r;
+
+	// Check if srcva >= UTOP or srcva is not page-aligned
+	if(srcva >= (void *)UTOP || PGOFF(srcva))
 		return -E_INVAL;
-	}
 
-	pte_t *ppte = NULL;
-	struct PageInfo *page = page_lookup(src_env->env_pml4e, srcva, &ppte);
-	
-	if ( page == NULL ) {
+	// Check if guest_pa >= guest physical size or guest_pa is not page-aligned
+	if(guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa))
 		return -E_INVAL;
-	}
 
-	// if ( (perm & PTE_W) && (!ppte || !(*ppte & PTE_W)) ) {
-	// 		return -E_INVAL;
-	// }
+	// Check perms - make sure read is set and only bits from full are allowed
+	if ((~perm & __EPTE_READ) || (perm & ~__EPTE_FULL))
+        return -E_INVAL;
 
-	int success = ept_map_hva2gpa(guest_env->env_pml4e, (void*)page2kva(page), (void*)guest_pa, perm, 0);
+	// Lookup the source page
+	pte_t *src_pte;
+	struct PageInfo *src_page = page_lookup(src_env->env_pml4e, srcva, &src_pte);
 
-	if( success < 0 ) {
-		return -E_NO_MEM;
-	}
+	if(src_page == NULL || ((perm & __EPTE_WRITE) && !(*src_pte & PTE_W)))
+		return -E_INVAL;
+	
+	int result;
+	if((result = ept_map_hva2gpa(guest_env->env_pml4e, page2kva(src_page), guest_pa, perm, 0)) < 0)
+		return result; 
 
-	page->pp_ref++;
+	src_page->pp_ref++;
 
     return 0;
 }
