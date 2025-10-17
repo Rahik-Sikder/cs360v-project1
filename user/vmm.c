@@ -26,7 +26,8 @@ map_in_guest( envid_t guest, uintptr_t gpa, size_t memsz,
 	seek(fd, fileoffset);
 
 	// Loop through all the pages in the region
-	for(int i = 0; i < filesz; i+=PGSIZE){
+	int i;
+	for(i = 0; i < filesz; i+=PGSIZE){
 
 		// Need to malloc page to copy from fd
 		void *host_va = (void *) UTEMP;

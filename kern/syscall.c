@@ -470,7 +470,7 @@ sys_ept_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 
 	// Check if guest_pa >= guest physical size or guest_pa is not page-aligned
-	if(guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa))
+	if((int64_t)guest_pa >= guest_env->env_vmxinfo.phys_sz || PGOFF(guest_pa))
 		return -E_INVAL;
 
 	// Check perms - make sure read is set and only bits from full are allowed
