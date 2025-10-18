@@ -228,6 +228,9 @@ handle_cpuid(struct Trapframe *tf, struct VmxGuestInfo *ginfo)
 // 
 // Hint: The TA's solution does not hard-code the length of the cpuid instruction.//
 
+#define KiB(x) ((uint32_t)(x) << 10)
+#define MiB(x) ((uint32_t)(x) << 20)
+
 bool
 handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 {
@@ -252,6 +255,57 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// Copy the mbinfo and memory_map_t (segment descriptions) into the guest page, and return
 		//   a pointer to this region in rbx (as a guest physical address).
 		/* Your code here */
+
+		// does va mapping exist? alloc if not
+		ept_gpa2hva(eptrt, (void *)multiboot_map_addr, &hva_pg);
+		if (hva_pg == NULL){
+			struct PageInfo* p_info = page_alloc(ALLOC_ZERO);
+			hva_pg = page2kva(p_info);
+
+			// map allocated page
+			ept_map_hva2gpa(eptrt, hva_pg, (void *)multiboot_map_addr, __EPTE_FULL, 0);
+		}
+
+		multiboot_info_t* mbinfo = (multiboot_info_t*) hva_pg;
+		mbinfo->flags = MB_FLAG_MMAP;
+		mbinfo->mmap_addr = multiboot_map_addr + sizeof(multiboot_info_t); // gpa
+		mbinfo->mmap_length = 3 * sizeof(memory_map_t);
+
+		memory_map_t low_mem = {
+			.size = sizeof(memory_map_t) - sizeof(int32_t),
+			.base_addr_low = 0x0,
+			.base_addr_high = 0x0,
+			.length_low = 0xA0000, // 640 * 2^10 = 655,360
+			.length_high = 0,
+			.type = MB_TYPE_USABLE,
+		};
+		memory_map_t io_hole = {
+			.size = sizeof(memory_map_t) - sizeof(int32_t),
+			.base_addr_low = 0xA0000,
+			.base_addr_high = 0x0,
+			.length_low = 0x60000, // 0x100000 - 0xA0000
+			.length_high = 0,
+			.type = MB_TYPE_RESERVED,
+		};
+
+		memory_map_t high_mem = {
+			.size = sizeof(memory_map_t) - sizeof(int32_t),
+			.base_addr_low = 0x100000, // 0xA0000 + 0x60000
+			.base_addr_high = 0x0,
+			.length_low = gInfo->phys_sz - 0x100000,
+			.length_high = 0,
+			.type = MB_TYPE_USABLE,
+		};
+
+		// point right after mbinfo
+		memory_map_t *maps = (memory_map_t *)(mbinfo + 1); 
+		memcpy(&maps[0], &low_mem, sizeof(memory_map_t));
+		memcpy(&maps[1], &io_hole, sizeof(memory_map_t));
+		memcpy(&maps[2], &high_mem, sizeof(memory_map_t));
+
+		tf->tf_regs.reg_rbx = multiboot_map_addr;
+		handled = true;
+
 		break;
 	case VMX_VMCALL_IPCSEND:
         /* Hint: */

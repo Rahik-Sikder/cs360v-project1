@@ -1,0 +1,15 @@
+NEED TO DOUBLE CHECK ALL OF THESE
+
+1.  Interrupts, I/O instructions, EPT violations. 
+
+2. What overhead costs exist when you do a VM exit? 2a. Give an example in the codebase of one of these computation costs. Provide the function and file, and an explanation
+
+The overhead cost of a VM exit comes from saving the state of the VM in the VMCS structure. An example can be seen in 
+
+3. Recall that the %cr3 register holds the physical address of a page table. An OS kernel needs to change %cr3 during context switches to switch page tables. Does our VM, which has hardware supported page tables for virtual machines also have to do this? GDB does not display the %cr3 register, but you can check it using the QEMU monitor (see the tools.md doc) before and after a vmexit is issued.
+
+// Need to check but should be no. The EPT register will store a page table for the VM that will be used for all processes in the VM, and the Guest will try to read and write from a virtual cr3 register.
+
+4. In Part-3 of this project, you will be responsible for filling in pieces in the codebase to boot the VM. What is a bootloader? How do we ensure isolation between machines booting in memory?
+
+The bootloader is the software responsible for setting up the Guest OS structures and starting the PID 0 Guest OS kernel process. We ensure isolation between machines booting in memory by restricting write access and performing copy-on-writes for shared structures between shared memory. 
