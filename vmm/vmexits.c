@@ -252,6 +252,59 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// Copy the mbinfo and memory_map_t (segment descriptions) into the guest page, and return
 		//   a pointer to this region in rbx (as a guest physical address).
 		/* Your code here */
+		ept_gpa2hva(eptrt, (void *)multiboot_map_addr, &hva_pg);
+		if(!hva_pg){
+			struct PageInfo *pg = page_alloc(ALLOC_ZERO);
+			if(!pg){
+				cprintf("handle_vmcall: mbmap: out of memory\n");
+				return false;
+			}
+			r = ept_map_hva2gpa(eptrt, page2kva(pg), (void *)multiboot_map_addr, __EPTE_FULL, 0);
+			assert(r >= 0);
+			hva_pg = page2kva(pg);
+		}
+
+		multiboot_info_t* mbinfo = (multiboot_info_t *)hva_pg;
+		mbinfo->flags = MB_FLAG_MMAP ;
+		mbinfo->mmap_length = 3 * sizeof(memory_map_t);
+		mbinfo->mmap_addr = multiboot_map_addr + sizeof(multiboot_info_t);
+
+		memory_map_t low_mem = {
+			.size = sizeof(memory_map_t) - sizeof(uint32_t),
+			.base_addr_low = 0x00000000,
+			.base_addr_high = 0x0,
+			.length_low = 0x000A0000,
+			.length_high = 0x0,
+			.type = MB_TYPE_USABLE
+		};
+
+		memory_map_t io_hole = {
+			.size = sizeof(memory_map_t) - sizeof(uint32_t),
+			.base_addr_low = 0x000A0000,
+			.base_addr_high = 0x0,
+			.length_low = 0x00060000, // length of region - 0x000A0000
+			.length_high = 0x0,
+			.type = MB_TYPE_RESERVED
+		};
+
+		memory_map_t high_mem = {
+			.size = sizeof(memory_map_t) - sizeof(uint32_t),
+			.base_addr_low = 0x00100000,
+			.base_addr_high = 0x0,
+			.length_low = gInfo->phys_sz - 0x00100000,
+			.length_high = 0x0,
+			.type = MB_TYPE_USABLE
+		};
+
+		memory_map_t* mmap = (memory_map_t *)(hva_pg + sizeof(multiboot_info_t));
+
+		memcpy(&mmap[0], &low_mem, sizeof(memory_map_t));
+		memcpy(&mmap[1], &io_hole, sizeof(memory_map_t));
+		memcpy(&mmap[2], &high_mem, sizeof(memory_map_t));
+
+		tf->tf_regs.reg_rbx = multiboot_map_addr;
+		handled = true;
+		
 		break;
 	case VMX_VMCALL_IPCSEND:
         /* Hint: */
@@ -294,6 +347,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		 * Hint: The solution does not hard-code the length of the vmcall instruction.
 		 */
 		/* Your code here */
+		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
 	}
 	return handled;
 }
