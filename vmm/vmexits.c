@@ -213,9 +213,22 @@ handle_ioinstr(struct Trapframe *tf, struct VmxGuestInfo *ginfo) {
 bool
 handle_cpuid(struct Trapframe *tf, struct VmxGuestInfo *ginfo)
 {
-	/* Your code here  */
-    panic("handle_cpuid is not impemented\n");
-    return false;
+	uint32_t eax, ebx, ecx, edx;
+	cpuid(tf->tf_regs.reg_rax, &tf->tf_regs.reg_rax, &eax, &ebx, &ecx, &edx);
+	// Hide VMX support from the guest.
+	if(tf->tf_regs.reg_rax == 1) {
+		// Clear the VMX bit in ECX.
+		ecx &= ~(0x1 << 5);
+	}
+	tf->tf_regs.reg_rax = eax;
+	tf->tf_regs.reg_rbx = ebx;
+	tf->tf_regs.reg_rcx = ecx;
+	tf->tf_regs.reg_rdx = edx;
+
+	
+	tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
+
+	return true;
 }
 
 // Handle vmcall traps from the guest.
