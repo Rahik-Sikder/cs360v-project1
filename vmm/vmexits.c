@@ -348,7 +348,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		 * Hint: The solution does not hard-code the length of the vmcall instruction.
 		 */
 		/* Your code here */
-		tf->tf_rip = vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
+		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
 	}
 	return handled;
 }
