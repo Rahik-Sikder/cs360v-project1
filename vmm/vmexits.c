@@ -214,7 +214,7 @@ bool
 handle_cpuid(struct Trapframe *tf, struct VmxGuestInfo *ginfo)
 {
 	uint32_t eax, ebx, ecx, edx;
-	cpuid(tf->tf_regs.reg_rax, &tf->tf_regs.reg_rax, &eax, &ebx, &ecx, &edx);
+	cpuid(tf->tf_regs.reg_rax, &eax, &ebx, &ecx, &edx);
 	// Hide VMX support from the guest.
 	if(tf->tf_regs.reg_rax == 1) {
 		// Clear the VMX bit in ECX.
