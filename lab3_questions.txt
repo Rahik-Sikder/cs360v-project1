@@ -1,0 +1,9 @@
+Using 1 slip days on lab 3.
+
+1. Interrupts, I/O instructions, EPT violations. 
+
+2. The overhead cost of a VM exit comes from saving the state of the VM in the VMCS structure and loading the host state. The TLB must also be flushed. The context switch back to a runnable environment(doesn't have to be the same one that caused the vmexit) can be seen in vmm/vmx.c when sched_yield is called which subsequently calls env_run which loads in the VMCS using vmptrld. 
+
+3. No, the VM does not manually need to change %cr3 during context swithces because whenever a vmexit occurs the host kernel's %cr3 is automatically restored. When the VM runs again, the hardware automatically changes the %cr3 back to the guest page table without manual intervention in software. The EPT register will store a page table for the VM that will be used for all processes in the VM, and the Guest will try to read and write from a virtual cr3 register.
+
+4. The bootloader is the software responsible for setting up the Guest OS structures and starting the PID 0 Guest OS kernel process. We ensure isolation between machines booting in memory by restricting write access and performing copy-on-writes for shared structures between shared memory. Each VM also maintains its own %cr3, and thus it's own virtual address space. The hypervisor also manages VMCS for each VM and the EPT, preventing one VM from accessing another VM's memory.
