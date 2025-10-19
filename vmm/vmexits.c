@@ -275,10 +275,16 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		ept_gpa2hva(eptrt, (void *)multiboot_map_addr, &hva_pg);
 		if (hva_pg == NULL){
 			struct PageInfo* p_info = page_alloc(ALLOC_ZERO);
-			hva_pg = page2kva(p_info);
-
+			if(!p_info){
+				cprintf("handle_vmcall: mbmap: out of memory\n");
+				return false;
+			}
+			
 			// map allocated page
-			ept_map_hva2gpa(eptrt, hva_pg, (void *)multiboot_map_addr, __EPTE_FULL, 0);
+			hva_pg = page2kva(p_info);
+			
+			r = ept_map_hva2gpa(eptrt, hva_pg, (void *)multiboot_map_addr, __EPTE_FULL, 0);
+			assert(r >= 0);
 		}
 
 		multiboot_info_t* mbinfo = (multiboot_info_t*) hva_pg;
