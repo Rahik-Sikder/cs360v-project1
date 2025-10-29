@@ -347,6 +347,8 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	else if(e->env_type == ENV_TYPE_GUEST && srcva < (void*) UTOP) {
 		// Host sending to Guest
 		// get page info of page to send
+		#ifndef VMM_GUEST
+
 		pp = page_lookup(curenv->env_pml4e, srcva, &ppte);
 		if (pp == 0) {
 			cprintf("[%08x] page_lookup %08x failed in sys_ipc_try_send\n", curenv->env_id, srcva);
@@ -363,6 +365,7 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 			cprintf("[%08x] ept_page_insert %08x failed in sys_ipc_try_send (%e)\n", curenv->env_id, srcva, r);
 			return r;
 		}
+		#endif
 	} else if  (srcva < (void*) UTOP && e->env_ipc_dstva < (void*) UTOP) {
         if ((~perm & (PTE_U|PTE_P)) || (perm & ~PTE_SYSCALL)) {
             cprintf("[%08x] bad perm %x in sys_ipc_try_send\n", curenv->env_id, perm);
