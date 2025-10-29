@@ -107,11 +107,11 @@ ipc_host_send(envid_t to_env, uint32_t val, void *pg, int perm)
     physaddr_t pa = PTE_ADDR(uvpt[PGNUM(pg)]);
 
     // ISSUE FIRST VMCALL
-	r = asm("vmcall": "=a"(r) : "0"(VMCALL_IPC_TRY_SEND), "b"(to_env), "c"(val), "d"(pa), "S"(perm));
+	asm("vmcall": "=a"(r) : "0"(VMCALL_IPC_TRY_SEND), "b"(to_env), "c"(val), "d"(pa), "S"(perm));
     while(r == -E_IPC_NOT_RECV) {
 		sys_yield();
 		// TRY VMCALL REPEATEDLY UNTIL YOU GET A RESPONSE
-		r = asm("vmcall": "=a"(r) : "0"(VMCALL_IPC_TRY_SEND), "b"(to_env), "c"(val), "d"(pa), "S"(perm));	
+		asm("vmcall": "=a"(r) : "0"(VMCALL_IPC_TRY_SEND), "b"(to_env), "c"(val), "d"(pa), "S"(perm));	
 	}
 	if (r < 0)
 		panic("error in ipc_send: %e", r);
