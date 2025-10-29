@@ -147,7 +147,7 @@ int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 		page_decref(old_pp);
 	}
 
-	*pte = page2pa(pp)|perm|__EPTE_FULL;
+	*pte = page2pa(pp)|perm|PTE_P;
 	pp->pp_ref++;
 
     return 0;

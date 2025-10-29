@@ -325,7 +325,7 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
      *  is using normal page, use page_insert. Use ept_page_insert() wherever possible. */
     /* Your code here */
 
-	if (curenv->env_type == ENV_TYPE_GUEST && srcva < (void*) UTOP) {
+	if (curenv->env_type == ENV_TYPE_GUEST && e->env_ipc_dstva < (void*) UTOP) {
 		// Guest sending to Host
 
 		if(srcva < (void*) KERNBASE){
