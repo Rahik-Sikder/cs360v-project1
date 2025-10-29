@@ -346,26 +346,25 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		perm = tf->tf_regs.reg_rsi;
 
 
-		if (to_env != VMX_HOST_FS_ENV || curenv->env_type != ENV_TYPE_GUEST) {
-			tf->tf_regs.reg_rax = -E_INVAL;
-			return true;
-		}
-		// check if to_env is HOST FS
-		struct Env *e;
-		bool found = false;
-		for(e = envs; e < envs + NENV; e++) {
-			if(e->env_type == ENV_TYPE_FS) {
-				to_env = e->env_id;
-				found = true;
+		if (to_env == VMX_HOST_FS_ENV && curenv->env_type == ENV_TYPE_GUEST) {
+			// check if to_env is HOST FS
+			struct Env *e;
+			bool found = false;
+			for(e = envs; e < envs + NENV; e++) {
+				if(e->env_type == ENV_TYPE_FS) {
+					to_env = e->env_id;
+					found = true;
+					break;
+				}
+			}
+
+			if(!found) {
+				tf->tf_regs.reg_rax = -E_INVAL;
+				handled = true;
 				break;
 			}
 		}
 
-		if(!found) {
-			tf->tf_regs.reg_rax = -E_INVAL;
-			handled = true;
-			break;
-		}
 
 		// convert gpa to hva
 		ept_gpa2hva(eptrt, gpa_pg, &hva_pg);
