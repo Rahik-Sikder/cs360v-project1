@@ -128,6 +128,28 @@ void free_guest_mem(epte_t* eptrt) {
 int ept_page_insert(epte_t* eptrt, struct PageInfo* pp, void* gpa, int perm) {
 
     /* Your code here */
+	epte_t* pte;
+	if (gpa == NULL || pp == NULL) {
+		return -E_INVAL;
+	}
+	
+	int success	= ept_lookup_gpa(eptrt, gpa, 1, &pte);
+	if( success < 0 ) {
+		return success;
+	}
+	else if(pte == NULL) {
+		return -E_NO_MEM;
+	}
+	if (epte_present(*pte)) {
+		// decrement ref count of old mapping
+		physaddr_t old_pa = epte_addr(*pte);
+		struct PageInfo* old_pp = pa2page(old_pa);
+		page_decref(old_pp);
+	}
+
+	*pte = page2pa(pp)|perm|PTE_P;
+	pp->pp_ref++;
+
     return 0;
 }
 
