@@ -1,3 +1,5 @@
+Using 2 slip days
+
 1.
 int size;
 int 

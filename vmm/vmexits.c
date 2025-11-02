@@ -349,14 +349,14 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// check if env is HOST FS
 		if (to_env == VMX_HOST_FS_ENV && curenv->env_type == ENV_TYPE_GUEST) {
 			// check if to_env is HOST FS
-			int i;
-			for(i = 0; i < NENV; i++) {
-				if(envs[i].env_type == ENV_TYPE_FS) {
-					to_env = envs[i].env_id;
+			struct Env *e;
+			for(e = envs; e < envs + NENV; e++) {
+				if(e->env_type == ENV_TYPE_FS) {
+					to_env = e->env_id;
 					break;
 				}
 			}
-
+			
 			// not found
 			tf->tf_regs.reg_rax = -E_INVAL;
 			handled = true;
