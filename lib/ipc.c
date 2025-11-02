@@ -89,7 +89,7 @@ ipc_host_recv(void *pg) {
     if (r < 0) {
 		return r;
 	}
-
+	return val;
 }
 
 // Access to host IPC interface through VMCALL.
