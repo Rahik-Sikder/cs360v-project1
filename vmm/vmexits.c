@@ -362,8 +362,8 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 			if(!found) {
 				tf->tf_regs.reg_rax = -E_INVAL;
 				handled = true;
+				break;
 			}
-			break;
 		}
 
 		// convert gpa to hva
