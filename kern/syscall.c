@@ -331,7 +331,6 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 			cprintf("[%08x] guest trying to send from invalid srcva %08x in sys_ipc_try_send\n", curenv->env_id, srcva);
 			return -E_INVAL;
 		}
-
 		// get the page info
 		pp = pa2page(PADDR(srcva));
 
