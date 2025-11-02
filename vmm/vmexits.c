@@ -14,6 +14,9 @@
 #include <kern/syscall.h>
 #include <kern/env.h>
 #include <kern/cpu.h>
+#include <inc/lib.h>
+#include <inc/vmx.h>
+
 
 static int vmdisk_number = 0;	//this number assign to the vm
 int 
@@ -339,6 +342,42 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		//  this to a host virtual address for the IPC to work properly.
         //  Then you should call sys_ipc_try_send()
 		/* Your code here */
+
+		to_env = tf->tf_regs.reg_rbx;
+		val = tf->tf_regs.reg_rcx;
+		void *gpa = tf->tf_regs.reg_rdx, *hva; 
+		int perm = tf->tf_regs.reg_rsi;
+
+		// check if env is HOST FS
+		if (to_env == VMX_HOST_FS_ENV && curenv->env_type == ENV_TYPE_GUEST) {
+			// check if to_env is HOST FS
+			struct Env *e;
+			bool found = false;
+			for(e = envs; e < envs + NENV; e++) {
+				if(e->env_type == ENV_TYPE_FS) {
+					to_env = e->env_id;
+					found = true;
+					break;
+				}
+			}
+
+			if(!found) {
+				tf->tf_regs.reg_rax = -E_INVAL;
+				handled = true;
+				break;
+			}
+		}
+
+		// convert gpa to hva
+		ept_gpa2hva(eptrt, gpa, &hva);
+		if(hva == NULL){
+			tf->tf_regs.reg_rax = -E_INVAL;
+			handled = true;
+			break;
+		}
+
+		tf->tf_regs.reg_rax = sys_ipc_try_send(to_env, val, gpa, perm);
+		handled = true;
 		break;
 
 	case VMX_VMCALL_IPCRECV:
@@ -346,7 +385,13 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// NB: because recv can call schedule, clobbering the VMCS, 
 		// you should go ahead and increment rip before this call.
 		/* Your code here */
+
+		void *pa = tf->tf_regs.reg_rdx; 
+		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
+		tf->tf_regs.reg_rax  = sys_ipc_recv(pa);
+		handled = true;
 		break;
+
 	case VMX_VMCALL_LAPICEOI:
 		lapic_eoi();
 		handled = true;
