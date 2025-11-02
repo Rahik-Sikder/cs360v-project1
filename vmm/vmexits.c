@@ -351,9 +351,9 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// check if env is HOST FS
 		if (to_env == VMX_HOST_FS_ENV && curenv->env_type == ENV_TYPE_GUEST) {
 			// check if to_env is HOST FS
-			struct Env *e;
+			struct Env *e = envs;
 			bool found = false;
-			for(e = envs; e < envs + NENV; e++) {
+			for(; e < envs + NENV; e++) {
 				if(e->env_type == ENV_TYPE_FS) {
 					to_env = e->env_id;
 					found = true;
@@ -386,9 +386,8 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// you should go ahead and increment rip before this call.
 		/* Your code here */
 
-		void *pa = (void *)tf->tf_regs.reg_rbx; 
 		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
-		tf->tf_regs.reg_rax  = sys_ipc_recv(pa);
+		tf->tf_regs.reg_rax  = sys_ipc_recv((void *)tf->tf_regs.reg_rbx);
 		handled = true;
 		break;
 
