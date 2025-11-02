@@ -328,6 +328,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		handled = true;
 
 		break;
+
 	case VMX_VMCALL_IPCSEND:
         /* Hint: */
 		// Issue the sys_ipc_send call to the host.
@@ -342,7 +343,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 
 		to_env = tf->tf_regs.reg_rbx;
 		val = tf->tf_regs.reg_rcx;
-		void *gpa = (void *)tf->tf_regs.reg_rdx, *hva; 
+		gpa_pg = (void *)tf->tf_regs.reg_rdx; 
 		int perm = tf->tf_regs.reg_rsi;
 
 		// check if env is HOST FS
@@ -363,17 +364,16 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		}
 
 		// convert gpa to hva
-		ept_gpa2hva(eptrt, gpa, &hva);
-		if(hva == NULL){
+		ept_gpa2hva(eptrt, gpa_pg, &hva_pg);
+		if(hva_pg == NULL){
 			tf->tf_regs.reg_rax = -E_INVAL;
 			handled = true;
 			break;
 		}
 
 		// can't use sys_ipc_try_send() due to lib.h declaration conflicts
-		tf->tf_regs.reg_rax = syscall(SYS_ipc_try_send, to_env, val, (uint64_t) hva, perm, 0);
-		
-
+		r = syscall(SYS_ipc_try_send, to_env, val, (uint64_t) hva_pg, perm, 0);
+		tf->tf_regs.reg_rax = r;
 		handled = true;
 		break;
 
@@ -385,7 +385,8 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 
 		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
 		// can't use sys_ipc_recv() due to lib.h declaration conflicts
-		tf->tf_regs.reg_rax = syscall(SYS_ipc_recv, tf->tf_regs.reg_rbx, 0, 0, 0, 0);
+		r = syscall(SYS_ipc_recv, tf->tf_regs.reg_rbx, 0, 0, 0, 0);
+		tf->tf_regs.reg_rax = r;
 		handled = true;
 		break;
 
