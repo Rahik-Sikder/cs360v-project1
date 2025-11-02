@@ -345,7 +345,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 
 		to_env = tf->tf_regs.reg_rbx;
 		val = tf->tf_regs.reg_rcx;
-		void *gpa = tf->tf_regs.reg_rdx, *hva; 
+		void *gpa = (void *)tf->tf_regs.reg_rdx, *hva; 
 		int perm = tf->tf_regs.reg_rsi;
 
 		// check if env is HOST FS
@@ -386,7 +386,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// you should go ahead and increment rip before this call.
 		/* Your code here */
 
-		void *pa = tf->tf_regs.reg_rdx; 
+		void *pa = (void *)tf->tf_regs.reg_rbx; 
 		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
 		tf->tf_regs.reg_rax  = sys_ipc_recv(pa);
 		handled = true;

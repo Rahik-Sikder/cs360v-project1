@@ -344,7 +344,7 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 		}
 		e->env_ipc_perm = perm;
 	}
-	else if (e->env_type = ENV_TYPE_GUEST && srcva < (void*) UTOP){
+	else if (e->env_type == ENV_TYPE_GUEST && srcva < (void*) UTOP){
 		// host sending msg to guest, insert in ept
 		#ifndef VMM_GUEST // bc of ept_page_insert
 		pp = page_lookup(curenv->env_pml4e, srcva, &ppte);

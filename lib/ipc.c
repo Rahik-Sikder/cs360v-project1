@@ -85,7 +85,7 @@ ipc_host_recv(void *pg) {
     physaddr_t pa = PTE_ADDR(uvpt[PGNUM(pg)]);
 
     // ISSUE VMCALL
-	asm("vmcall": "=a"(r) : "0"(VMX_VMCALL_IPCRECV),"d"(pa),);
+	asm("vmcall": "=a"(r) : "0"(VMX_VMCALL_IPCRECV),"b"(pa),);
 
     if (r < 0) {
 		return r;
