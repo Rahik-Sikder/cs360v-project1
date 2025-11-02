@@ -14,9 +14,6 @@
 #include <kern/syscall.h>
 #include <kern/env.h>
 #include <kern/cpu.h>
-#include <inc/lib.h>
-#include <inc/vmx.h>
-
 
 static int vmdisk_number = 0;	//this number assign to the vm
 int 
@@ -351,7 +348,8 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		// check if env is HOST FS
 		if (to_env == VMX_HOST_FS_ENV && curenv->env_type == ENV_TYPE_GUEST) {
 			// check if to_env is HOST FS
-			for(int i = 0; i < NENV; i++) {
+			int i;
+			for(i = 0; i < NENV; i++) {
 				if(envs[i].env_type == ENV_TYPE_FS) {
 					to_env = envs[i].env_id;
 					break;
@@ -372,7 +370,10 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 			break;
 		}
 
-		tf->tf_regs.reg_rax = sys_ipc_try_send(to_env, val, gpa, perm);
+		// can't use sys_ipc_try_send() due to lib.h declaration conflicts
+		tf->tf_regs.reg_rax = syscall(SYS_ipc_try_send, to_env, val, (uint64_t) hva, perm, 0);
+		
+
 		handled = true;
 		break;
 
@@ -383,7 +384,8 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 		/* Your code here */
 
 		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
-		tf->tf_regs.reg_rax  = sys_ipc_recv((void *)tf->tf_regs.reg_rbx);
+		// can't use sys_ipc_recv() due to lib.h declaration conflicts
+		tf->tf_regs.reg_rax = syscall(SYS_ipc_recv, (void *) tf->tf_regs.reg_rbx, 0, 0, 0, 0);
 		handled = true;
 		break;
 
