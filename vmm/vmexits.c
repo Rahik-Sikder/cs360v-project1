@@ -385,7 +385,7 @@ handle_vmcall(struct Trapframe *tf, struct VmxGuestInfo *gInfo, uint64_t *eptrt)
 
 		tf->tf_rip += vmcs_read32(VMCS_32BIT_VMEXIT_INSTRUCTION_LENGTH);
 		// can't use sys_ipc_recv() due to lib.h declaration conflicts
-		tf->tf_regs.reg_rax = syscall(SYS_ipc_recv, (void *) tf->tf_regs.reg_rbx, 0, 0, 0, 0);
+		tf->tf_regs.reg_rax = syscall(SYS_ipc_recv, tf->tf_regs.reg_rbx, 0, 0, 0, 0);
 		handled = true;
 		break;
 
