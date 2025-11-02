@@ -61,6 +61,10 @@ bc_pgfault(struct UTrapframe *utf)
 	/* FIXME DP: Should be lab 8 */
     /* Your code here */
 
+	if ((r = host_read(blockno * BLKSECTS, addr, BLKSECTS)) < 0)
+		panic("in bc_pgfault, host_read: %e", r);
+
+
 #endif // VMM_GUEST
 
 	if ((r = sys_page_map(0, addr, 0, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL)) < 0)
@@ -102,6 +106,8 @@ flush_block(void *addr)
 
 	/* FIXME DP: Should be lab 8 */
     /* Your code here */
+
+	host_write(blockno * BLKSECTS, (void*) addr, BLKSECTS);
 
 #endif
 

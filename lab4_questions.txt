@@ -1,0 +1,46 @@
+Using 2 slip days
+
+1.
+int size;
+int 
+int arr[size];
+for(int i = 0; i < size; i++){
+    #ifdef CUSTOM_MACRO
+        size += arr[i];
+    #else
+        size *= arr[i];
+    #endif
+}
+
+
+2. A buffer cache is a region in memory that temporarily storages disk blocks in order to reduce the amount of file reads and writes that occur. Demand paging is a paradigm that only pulls a page into memory when it is actuively going to be used, ie on a page fault. Both mechanisms help improve the performance of the file system by reducing the amount of disk requests being made, as page faults caused by demand paging can be quickly resolved through a hit in the buffer cahche. 
+
+
+3. After completing the lab, provide a simple diagram (you can just use function names and arrows) of the workflow of the functions that get called when a guest VM tries to read from a file.
+
+
+GUEST VM
+    - tries to read from a file block that isn't mapped
+    - triggers a buffer cache page fault
+
+bc_pgfault() => host_read() => host_fsipc() => ipc_host_send() => ...
+
+    - ipc_host_send now issues a vmcall instruction with VMX_VMCALL_IPCSEND
+    - causes a VMEXIT to occur - handled by handle_vmcall()
+
+... => handle_vmcall() => sys_ipc_try_send() => (ret back) host_fsipc()
+
+    - in handle_vmcall the gpa is converted to hva
+    - sends IPC message to host file system
+    - a page with the data is inserted into the guest's EPT
+
+host_fsipc() => ipc_host_recv() => ...
+
+    - a vmcall is issued with VMX_VMCALL_IPCRECV
+
+... => handle_vmcall() => sys_ipc_recv() => (ret back) host_fsipc()
+=> (ret back) => host_read() => (ret back) bc_pgfault() => ... => GUEST VM
+
+GUEST VM:
+    - continues execution
+
